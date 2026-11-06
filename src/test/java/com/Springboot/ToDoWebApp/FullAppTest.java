@@ -67,6 +67,26 @@ class FullAppTest {
     }
 
     @Test
+    void userCanMarkATodoAsDoneAndUndoIt() throws Exception {
+        Browser pranav = loggedInAs("Pranav");
+        String description = "Toggle me " + UUID.randomUUID();
+        addTodo(pranav, description);
+
+        String list = pranav.get("/list-todos").body();
+        assertEquals("Done", toggleButtonLabel(list, description));
+        String id = idOfTodo(list, description);
+
+        HttpResponse<String> afterDone = pranav.post("/toggle-todo", Map.of("id", id, "_csrf", csrfToken(list)));
+        assertEquals(200, afterDone.statusCode());
+        assertEquals("Undo", toggleButtonLabel(afterDone.body(), description));
+
+        HttpResponse<String> afterUndo = pranav.post("/toggle-todo",
+                Map.of("id", id, "_csrf", csrfToken(afterDone.body())));
+        assertEquals(200, afterUndo.statusCode());
+        assertEquals("Done", toggleButtonLabel(afterUndo.body(), description));
+    }
+
+    @Test
     void anotherUserCannotOpenOrDeleteATodo() throws Exception {
         Browser pranav = loggedInAs("Pranav");
         String description = "Private " + UUID.randomUUID();
@@ -149,6 +169,13 @@ class FullAppTest {
         Matcher matcher = Pattern.compile("(?s)" + Pattern.quote(description) + ".*?update-todo\\?id=(\\d+)")
                 .matcher(listPage);
         assertTrue(matcher.find(), "Todo not found on the list page");
+        return matcher.group(1);
+    }
+
+    private String toggleButtonLabel(String listPage, String description) {
+        Matcher matcher = Pattern.compile("(?s)" + Pattern.quote(description)
+                + ".*?action=\"toggle-todo\".*?<button[^>]*>\\s*(\\w+)\\s*</button>").matcher(listPage);
+        assertTrue(matcher.find(), "Toggle button not found for the todo");
         return matcher.group(1);
     }
 

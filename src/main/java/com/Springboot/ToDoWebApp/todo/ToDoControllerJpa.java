@@ -40,6 +40,14 @@ public class ToDoControllerJpa {
         return "listTodos";
     }
 
+    @RequestMapping (value = "toggle-todo", method = RequestMethod.POST)
+    public String toggleToDo(@RequestParam int id) {
+        Todo todo = findOwnedTodoById(id);
+        todo.setDone(!todo.isDone());
+        todoRepository.save(todo);
+        return "redirect:list-todos";
+    }
+
     @RequestMapping(value = "add-todos", method = RequestMethod.GET)
     public String showNewToDoPage(ModelMap model) {
         Todo todo = new Todo(0, getLoggedInUsername(), "", LocalDate.now().plusMonths(1), false);

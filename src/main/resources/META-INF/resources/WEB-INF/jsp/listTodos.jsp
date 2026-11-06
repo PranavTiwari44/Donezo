@@ -18,13 +18,19 @@
 							<td>${todo.targetDate}</td>
 							<td>${todo.done}</td>
 							<td>
+								<form action="toggle-todo" method="post">
+									<input type="hidden" name="id" value="${todo.id}"/>
+									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+									<button type="submit" class="btn btn-primary">${todo.done ? 'Undo' : 'Done'}</button>
+								</form>
+							</td>
+							<td>
 								<form action="delete-todo" method="post">
 									<input type="hidden" name="id" value="${todo.id}"/>
 									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 									<button type="submit" class="btn btn-danger">Delete</button>
 								</form>
 							</td>
-
 							<td><a href="update-todo?id=${todo.id}" class="btn btn-warning">Update</a></td>
 						</tr>
 					</c:forEach>
