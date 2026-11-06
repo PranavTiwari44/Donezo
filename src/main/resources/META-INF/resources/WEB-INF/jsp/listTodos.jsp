@@ -14,7 +14,7 @@
 				<tbody>
 					<c:forEach items="${todos}" var="todo">
 						<tr>
-							<td>${todo.description}</td>
+							<td><c:out value="${todo.description}"/></td>
 							<td>${todo.targetDate}</td>
 							<td>${todo.done}</td>
 							<td>
@@ -24,6 +24,7 @@
 									<button type="submit" class="btn btn-danger">Delete</button>
 								</form>
 							</td>
+
 							<td><a href="update-todo?id=${todo.id}" class="btn btn-warning">Update</a></td>
 						</tr>
 					</c:forEach>

@@ -3,7 +3,7 @@
   <p><strong>A simple to-do app with a login, so everyone gets their own list.</strong></p>
 
   ![Java](https://img.shields.io/badge/Java-18-ED8B00?logo=openjdk&logoColor=white)
-  ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-6DB33F?logo=springboot&logoColor=white)
+  ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4-6DB33F?logo=springboot&logoColor=white)
   ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
   ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)
 </div>
@@ -43,6 +43,14 @@ cd ToDoWebApp
 ```
 
 Then open [localhost:8080](http://localhost:8080) and log in with `Pranav` / `qwerty`.
+
+## Run the tests
+
+The tests use an in-memory database, so they don't need Docker or MySQL.
+
+```bash
+./mvnw test
+```
 
 ## To do
 
