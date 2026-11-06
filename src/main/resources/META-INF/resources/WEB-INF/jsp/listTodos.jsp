@@ -17,7 +17,13 @@
 							<td>${todo.description}</td>
 							<td>${todo.targetDate}</td>
 							<td>${todo.done}</td>
-							<td><a href="delete-todo?id=${todo.id}" class="btn btn-danger">Delete</a></td>
+							<td>
+								<form action="delete-todo" method="post">
+									<input type="hidden" name="id" value="${todo.id}"/>
+									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+									<button type="submit" class="btn btn-danger">Delete</button>
+								</form>
+							</td>
 							<td><a href="update-todo?id=${todo.id}" class="btn btn-warning">Update</a></td>
 						</tr>
 					</c:forEach>

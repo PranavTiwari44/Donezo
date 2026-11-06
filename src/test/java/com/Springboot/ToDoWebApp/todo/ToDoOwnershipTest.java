@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,7 +54,7 @@ class ToDoOwnershipTest {
     @Test
     @WithMockUser("Pran")
     void cannotDeleteAnotherUsersTodo() throws Exception {
-        mockMvc.perform(get("/delete-todo").param("id", "5"))
+        mockMvc.perform(post("/delete-todo").with(csrf()).param("id", "5"))
                 .andExpect(status().isNotFound());
 
         verify(todoRepository, never()).delete(any());
@@ -70,7 +71,7 @@ class ToDoOwnershipTest {
     @Test
     @WithMockUser("Pran")
     void cannotOverwriteAnotherUsersTodoThroughUpdate() throws Exception {
-        mockMvc.perform(post("/update-todo")
+        mockMvc.perform(post("/update-todo").with(csrf())
                         .param("id", "5")
                         .param("description", "Overwritten by Pran")
                         .param("targetDate", "2030-01-01"))
@@ -82,7 +83,7 @@ class ToDoOwnershipTest {
     @Test
     @WithMockUser("Pran")
     void addFormIgnoresForgedIdAndUsername() throws Exception {
-        mockMvc.perform(post("/add-todos")
+        mockMvc.perform(post("/add-todos").with(csrf())
                         .param("id", "5")
                         .param("username", "Pranav")
                         .param("description", "Overwritten by Pran")
@@ -99,7 +100,7 @@ class ToDoOwnershipTest {
     @Test
     @WithMockUser("Pranav")
     void ownerCanDeleteTheirTodo() throws Exception {
-        mockMvc.perform(get("/delete-todo").param("id", "5"))
+        mockMvc.perform(post("/delete-todo").with(csrf()).param("id", "5"))
                 .andExpect(status().is3xxRedirection());
 
         verify(todoRepository).delete(any(Todo.class));
@@ -115,7 +116,7 @@ class ToDoOwnershipTest {
     @Test
     @WithMockUser("Pranav")
     void ownerCanUpdateTheirTodo() throws Exception {
-        mockMvc.perform(post("/update-todo")
+        mockMvc.perform(post("/update-todo").with(csrf())
                         .param("id", "5")
                         .param("description", "Updated by Pranav")
                         .param("targetDate", "2030-01-01"))
@@ -125,6 +126,49 @@ class ToDoOwnershipTest {
         assertEquals(PRANAVS_TODO_ID, saved.getId());
         assertEquals("Pranav", saved.getUsername());
         assertEquals("Updated by Pranav", saved.getDescription());
+    }
+
+    // Forged requests: another website uses the owner's login to send these
+
+    @Test
+    @WithMockUser("Pranav")
+    void deleteRejectsGetRequests() throws Exception {
+        mockMvc.perform(get("/delete-todo").param("id", "5"))
+                .andExpect(status().isMethodNotAllowed());
+
+        verify(todoRepository, never()).delete(any());
+    }
+
+    @Test
+    @WithMockUser("Pranav")
+    void deleteRejectsPostWithoutCsrfToken() throws Exception {
+        mockMvc.perform(post("/delete-todo").param("id", "5"))
+                .andExpect(status().isForbidden());
+
+        verify(todoRepository, never()).delete(any());
+    }
+
+    @Test
+    @WithMockUser("Pranav")
+    void updateRejectsPostWithoutCsrfToken() throws Exception {
+        mockMvc.perform(post("/update-todo")
+                        .param("id", "5")
+                        .param("description", "Forged by another website")
+                        .param("targetDate", "2030-01-01"))
+                .andExpect(status().isForbidden());
+
+        verify(todoRepository, never()).save(any());
+    }
+
+    @Test
+    @WithMockUser("Pranav")
+    void addRejectsPostWithoutCsrfToken() throws Exception {
+        mockMvc.perform(post("/add-todos")
+                        .param("description", "Forged by another website")
+                        .param("targetDate", "2030-01-01"))
+                .andExpect(status().isForbidden());
+
+        verify(todoRepository, never()).save(any());
     }
 
     private Todo capturedSave() {

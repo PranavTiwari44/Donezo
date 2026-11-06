@@ -58,7 +58,7 @@ public class ToDoControllerJpa {
         return "redirect:list-todos";
     }
 
-    @RequestMapping(value = "delete-todo")
+    @RequestMapping(value = "delete-todo", method = RequestMethod.POST)
     public String deleteToDo(@RequestParam int id) {
        todoRepository.delete(findOwnedTodoById(id));
         return "redirect:list-todos";
